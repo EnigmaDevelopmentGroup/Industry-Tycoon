@@ -108,6 +108,8 @@ export class ConveyorPole {
  */
 export class Conveyor {
 	public conveyorPoles: ConveyorPole[];
+	public nextConveyorSegment: Conveyor;
+	public previousConveyorSegment: Conveyor;
 
 	constructor(conveyorPoles: ConveyorPole[]) {
 		this.conveyorPoles = conveyorPoles;

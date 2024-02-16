@@ -5,7 +5,7 @@ interface ConfigInterface {
 }
 
 const Config: ConfigInterface = {
-	EntityDebug: false,
+	EntityDebug: true,
 };
 
 /**

@@ -33,7 +33,7 @@ class BezierCurve {
 	getPoints(): Point[] {
 		const curvePoints: Point[] = [];
 
-		const steps = 20;
+		const steps = 100;
 		for (let step = 0; step < steps; step++) {
 			const t = step / steps;
 
@@ -154,7 +154,7 @@ export class Conveyor {
 			const DistanceBetweenThisPointAndTheNext = bezier
 				.getPoints()
 				[index].position.sub(curvePoints[index + 1]?.position || curvePoints[index].position).Magnitude;
-			Part.Size = new Vector3(DistanceBetweenThisPointAndTheNext, 1, 4);
+			Part.Size = new Vector3(DistanceBetweenThisPointAndTheNext + 0.1, 1, 4);
 			Part.Parent = Workspace;
 			bezier.cleanupRenderParts.push(Part);
 		});

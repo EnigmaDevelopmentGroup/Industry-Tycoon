@@ -1,4 +1,5 @@
 import { Workspace } from "@rbxts/services";
+import { configCompare } from "Shared/GlobalConfig";
 
 /**
  * @name Point
@@ -21,7 +22,7 @@ class Point {
 class BezierCurve {
 	private anchorPoints: Point[];
 	private controlPoint: Point;
-	public cleanupRenderParts: Part[];
+	public cleanupRenderParts: Array<Part | MeshPart>;
 
 	constructor(anchorPoints: Point[], controlPoint: Point) {
 		this.anchorPoints = anchorPoints;
@@ -121,49 +122,42 @@ export class Conveyor {
 		});
 		const bezier = new BezierCurve(newPoints, newPoints[3]);
 
-		bezier.getPoints().forEach((point: Point, index: number) => {
-			const Part = new Instance("Part");
+		configCompare("EntityDebug", true, () => {
+			bezier.getPoints().forEach((point: Point, index: number) => {
+				const Part = new Instance("Part");
+				Part.Name = "P" + index;
+				Part.Position = point.position;
+				Part.Anchored = true;
+				Part.Size = new Vector3(0.5, 0.5, 0.5);
+				Part.Color = point.color;
+				Part.Material = Enum.Material.Neon;
+				Part.Transparency = 0.5;
+				Part.Parent = Workspace;
+				bezier.cleanupRenderParts.push(Part);
+			});
+		});
+		const curvePoints = bezier.getPoints();
+
+		curvePoints.forEach((point: Point, index: number) => {
+			// Calculate rotation for each mesh part
+
+			const nextPoint = curvePoints[index + 1] || curvePoints[index];
+			const direction = nextPoint.position.sub(point.position).Unit;
+			const addedRotation = new CFrame(point.position, point.position.add(direction)).mul(
+				CFrame.fromAxisAngle(new Vector3(0, 1, 0), math.rad(90)),
+			);
+
+			const Part = Workspace.WaitForChild("MeshPart").Clone() as MeshPart;
 			Part.Name = "P" + index;
-			Part.Position = point.position;
+			Part.CFrame = addedRotation;
 			Part.Anchored = true;
-			Part.Size = new Vector3(0.5, 0.5, 0.5);
-			Part.Color = point.color;
-			Part.Material = Enum.Material.Neon;
-			Part.Transparency = 0.5;
+			const DistanceBetweenThisPointAndTheNext = bezier
+				.getPoints()
+				[index].position.sub(curvePoints[index + 1]?.position || curvePoints[index].position).Magnitude;
+			Part.Size = new Vector3(DistanceBetweenThisPointAndTheNext, 1, 4);
 			Part.Parent = Workspace;
 			bezier.cleanupRenderParts.push(Part);
 		});
-
-		const curvePoints = bezier.getPoints();
-		const vertices: Vector3[] = [];
-
-		// Add vertices for a rectangular prism
-		for (let x = -0.5; x <= 0.5; x += 0.5) {
-			for (let z = -0.5; z <= 0.5; z += 0.5) {
-				const y = 0;
-				vertices.push(new Vector3(x, y, z));
-			}
-		}
-
-		// Shift vertices onto the curve
-		const adjustedVertices: Vector3[] = [];
-		for (const vertex of vertices) {
-			const curvePoint = bezier.getClosestPointOnCurve(vertex);
-			adjustedVertices.push(curvePoint);
-		}
-
-		// Create Mesh & MeshPart
-		const mesh = new Instance("EditableMesh");
-		const meshPart = new Instance("MeshPart");
-		meshPart.Parent = Workspace;
-		meshPart.Name = "DeformedMeshPart";
-
-		// Create custom mesh and set vertices
-		adjustedVertices.forEach((vertex) => {
-			mesh.AddVertex(vertex);
-		});
-
-		mesh.Parent = meshPart;
 
 		return bezier;
 	}

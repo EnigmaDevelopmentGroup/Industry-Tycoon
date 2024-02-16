@@ -15,6 +15,6 @@ while (i === 1) {
 		new ConveyorPole((Workspace.WaitForChild("c2") as BasePart).CFrame),
 		new ConveyorPole((Workspace.WaitForChild("c3") as BasePart).CFrame),
 	]);
-	task.wait(0.1);
+	task.wait(0.05);
 	bezier.cleanupRender();
 }
